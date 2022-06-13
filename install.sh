@@ -91,8 +91,8 @@ chattr +C /mnt/@/var_tmp
 chattr +C /mnt/@/var_spool
 chattr +C /mnt/@/var_lib_libvirt_images
 chattr +C /mnt/@/var_lib_machines
-chattr +C /mnt/@/var_lib_sddm
-chattr +C /mnt/@/var_lib_AccountsService
+#chattr +C /mnt/@/var_lib_sddm
+#chattr +C /mnt/@/var_lib_AccountsService
 chattr +C /mnt/@/cryptkey
 
 #Set the default BTRFS Subvol to Snapshot 1 before pacstrapping
