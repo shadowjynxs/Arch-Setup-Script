@@ -152,7 +152,7 @@ kernel_selector
 # Pacstrap (setting up a base sytem onto the new root).
 # As I said above, I am considering replacing gnome-software with pamac-flatpak-gnome as PackageKit seems very buggy on Arch Linux right now.
 echo "Installing the base system (it may take a while)."
-pacstrap /mnt base ${kernel} ${microcode} base-devel terminus-fonts linux-hardened-headers neofetch screenfetch zsh fish linux-firmware linux-firmware-qlogic grub grub-btrfs snapper snap-pac efibootmgr sudo networkmanager apparmor  python-psutil nano pipewire-pulse pipewire-alsa pipewire-jack  firewalld zram-generator adobe-source-han-sans-otc-fonts adobe-source-han-serif-otc-fonts gnu-free-fonts reflector bluez bluez-utils pulseaudio-bluetooth cups inetutils ntfs-3g bashtop htop sof-firmware rsync os-prober mlocate man-db
+pacstrap /mnt base ${kernel} ${microcode} base-devel terminus-fonts linux-hardened-headers neofetch screenfetch zsh fish linux-firmware linux-firmware-qlogic grub grub-btrfs snapper snap-pac efibootmgr sudo networkmanager apparmor  python-psutil nano pipewire-pulse pipewire-alsa pipewire-jack  firewalld zram-generator adobe-source-han-sans-otc-fonts adobe-source-han-serif-otc-fonts gnu-free-fonts reflector bluez bluez-utils pulseaudio-bluetooth cups inetutils ntfs-3g bashtop htop sof-firmware rsync os-prober btrfs-progs mlocate man-db
 
 # Routing jack2 through PipeWire.
 echo "/usr/lib/pipewire-0.3/jack" > /mnt/etc/ld.so.conf.d/pipewire-jack.conf
