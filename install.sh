@@ -77,8 +77,8 @@ btrfs su cr /mnt/@/var_tmp &>/dev/null
 btrfs su cr /mnt/@/var_spool &>/dev/null
 btrfs su cr /mnt/@/var_lib_libvirt_images &>/dev/null
 btrfs su cr /mnt/@/var_lib_machines &>/dev/null
-btrfs su cr /mnt/@/var_lib_gdm &>/dev/null
-btrfs su cr /mnt/@/var_lib_AccountsService &>/dev/null
+#btrfs su cr /mnt/@/var_lib_gdm &>/dev/null
+#btrfs su cr /mnt/@/var_lib_AccountsService &>/dev/null
 btrfs su cr /mnt/@/cryptkey &>/dev/null
 
 chattr +C /mnt/@/boot
@@ -115,7 +115,7 @@ chmod 600 /mnt/@/.snapshots/1/info.xml
 umount /mnt
 echo "Mounting the newly created subvolumes."
 mount -o ssd,noatime,space_cache,compress=zstd:15 $BTRFS /mnt
-mkdir -p /mnt/{boot,root,home,.snapshots,srv,tmp,/var/log,/var/log/journal,/var/crash,/var/cache,/var/tmp,/var/spool,/var/lib/libvirt/images,/var/lib/machines,/var/lib/sddm,/var/lib/AccountsService,/cryptkey}
+mkdir -p /mnt/{boot,root,home,.snapshots,srv,tmp,/var/log,/var/log/journal,/var/crash,/var/cache,/var/tmp,/var/spool,/var/lib/libvirt/images,/var/lib/machines,/cryptkey}
 mount -o ssd,noatime,space_cache=v2,autodefrag,compress=zstd:15,discard=async,nodev,nosuid,noexec,subvol=@/boot $BTRFS /mnt/boot
 mount -o ssd,noatime,space_cache=v2,autodefrag,compress=zstd:15,discard=async,nodev,nosuid,subvol=@/root $BTRFS /mnt/root 
 mount -o ssd,noatime,space_cache=v2.autodefrag,compress=zstd:15,discard=async,nodev,nosuid,subvol=@/home $BTRFS /mnt/home
@@ -138,8 +138,8 @@ mount -o ssd,noatime,space_cache=v2,autodefrag,compress=zstd:15,discard=async,no
 mount -o ssd,noatime,space_cache=v2,autodefrag,compress=zstd:15,discard=async,nodatacow,nodev,nosuid,noexec,subvol=@/var_lib_machines $BTRFS /mnt/var/lib/machines
 
 # GNOME requires /var/lib/gdm and /var/lib/AccountsService to be writeable when booting into a readonly snapshot. Thus we sadly have to split them.
-mount -o ssd,noatime,space_cache=v2,autodefrag,compress=zstd:15,discard=async,nodatacow,nodev,nosuid,noexec,subvol=@/var_lib_sddm $BTRFS /mnt/var/lib/sddm
-mount -o ssd,noatime,space_cache=v2,autodefrag,compress=zstd:15,discard=async,nodatacow,nodev,nosuid,noexec,subvol=@/var_lib_AccountsService $BTRFS /mnt/var/lib/AccountsService
+#mount -o ssd,noatime,space_cache=v2,autodefrag,compress=zstd:15,discard=async,nodatacow,nodev,nosuid,noexec,subvol=@/var_lib_sddm $BTRFS /mnt/var/lib/sddm
+#mount -o ssd,noatime,space_cache=v2,autodefrag,compress=zstd:15,discard=async,nodatacow,nodev,nosuid,noexec,subvol=@/var_lib_AccountsService $BTRFS /mnt/var/lib/AccountsService
 
 # The encryption is splitted as we do not want to include it in the backup with snap-pac.
 mount -o ssd,noatime,space_cache=v2,autodefrag,compress=zstd:15,discard=async,nodatacow,nodev,nosuid,noexec,subvol=@/cryptkey $BTRFS /mnt/cryptkey
@@ -152,7 +152,7 @@ kernel_selector
 # Pacstrap (setting up a base sytem onto the new root).
 # As I said above, I am considering replacing gnome-software with pamac-flatpak-gnome as PackageKit seems very buggy on Arch Linux right now.
 echo "Installing the base system (it may take a while)."
-pacstrap /mnt base ${kernel} ${microcode} base-devel neofetfch screenfetch zsh fish linux-firmware grub grub-btrfs snapper snap-pac efibootmgr sudo networkmanager apparmor python2-notify python-psutil nano pipewire-pulse pipewire-alsa pipewire-jack flatpak firewalld zram-generator adobe-source-han-sans-otc-fonts adobe-source-han-serif-otc-fonts gnu-free-fonts reflector bluez bluez-utils pulseaudio-bluetooth mlocate man-db
+pacstrap /mnt base ${kernel} ${microcode} base-devel neofetch screenfetch zsh fish linux-firmware grub grub-btrfs snapper snap-pac efibootmgr sudo networkmanager apparmor  python-psutil nano pipewire-pulse pipewire-alsa pipewire-jack flatpak firewalld zram-generator adobe-source-han-sans-otc-fonts adobe-source-han-serif-otc-fonts gnu-free-fonts reflector bluez bluez-utils pulseaudio-bluetooth mlocate man-db
 
 # Routing jack2 through PipeWire.
 echo "/usr/lib/pipewire-0.3/jack" > /mnt/etc/ld.so.conf.d/pipewire-jack.conf
