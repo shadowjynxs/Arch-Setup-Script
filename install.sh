@@ -4,7 +4,7 @@
 clear
 
 # Updating the live environment
-pacman -Syu
+pacman -Syy
 
 # Installing curl
 pacman -S --noconfirm curl
