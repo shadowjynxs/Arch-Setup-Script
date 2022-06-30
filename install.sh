@@ -2,8 +2,16 @@
 
 # Cleaning the TTY.
 clear
+setfont ter-124n
+rfkill unblock wifi
+iwctl --passphrase=qazwsxed station wlan0 connect Airtel
+iwctl --passphrase=qazwsxed station wlan0 connect Airtel\ 5G
+iwctl --passphrase=qazwsxed station wlan0 connect Airtel
+iwctl --passphrase=qazwsxed station wlan0 connect Airtel\ 5G
 
 # Updating the live environment
+reflector -c HK --sort rate --verbose --save /etc/pacman.d/mirrorlist
+sed -i 's/#ParallelDownloads = 5/ParallelDownloads = 25/g' /etc/pacman.conf
 pacman -Syy
 
 # Installing curl
@@ -189,6 +197,7 @@ echo "KEYMAP=$kblayout" > /mnt/etc/vconsole.conf
 # Configuring /etc/mkinitcpio.conf
 echo "Configuring /etc/mkinitcpio for ZSTD compression and LUKS hook."
 sed -i 's,#COMPRESSION="zstd",COMPRESSION="zstd",g' /mnt/etc/mkinitcpio.conf
+sed -i 's/MODULES=()/MODULES(btrfs i915)/g' /mnt/etc/mkinitcpio.conf
 sed -i 's,modconf block filesystems keyboard,keyboard modconf block encrypt filesystems,g' /mnt/etc/mkinitcpio.conf
 
 # Enabling LUKS in GRUB and setting the UUID of the LUKS container.
@@ -292,6 +301,7 @@ arch-chroot /mnt /bin/bash -e <<EOF
     
     # Setting up timezone.
     ln -sf /usr/share/zoneinfo/$(curl -s http://ip-api.com/line?fields=timezone) /etc/localtime &>/dev/null
+    sed -i 's/#ParallelDownloads = 5/ParallelDownloads = 25/g' /etc/pacman.conf
     
     # Setting up clock.
     hwclock --systohc
