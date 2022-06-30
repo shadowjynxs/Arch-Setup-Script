@@ -56,7 +56,7 @@ BTRFS="/dev/mapper/archlinux"
 
 # Formatting the LUKS Container as BTRFS.
 echo "Formatting the LUKS container as BTRFS."
-mkfs.btrfs -L arch $BTRFS &>/dev/null
+mkfs.btrfs -L -f arch $BTRFS &>/dev/null
 mount $BTRFS /mnt
 
 # Creating BTRFS subvolumes.
@@ -114,9 +114,9 @@ chmod 600 /mnt/@/.snapshots/1/info.xml
 # Mounting the newly created subvolumes.
 umount /mnt
 echo "Mounting the newly created subvolumes."
-mount -o ssd,noatime,space_cache,compress=zstd:15 $BTRFS /mnt
+mount -o ssd,noatime,space_cache=v2,compress=zstd:15 $BTRFS /mnt
 mkdir -p /mnt/{boot,root,home,.snapshots,srv,tmp,/var/log,/var/log/journal,/var/crash,/var/cache,/var/tmp,/var/spool,/var/lib/libvirt/images,/var/lib/machines,/cryptkey}
-mount -o ssd,noatime,space_cache=v2,autodefrag,compress=zstd:15,discard=async,nodev,nosuid,noexec,subvol=@/boot $BTRFS /mnt/boot
+#mount -o ssd,noatime,space_cache=v2,autodefrag,compress=zstd:15,discard=async,nodev,nosuid,noexec,subvol=@/boot $BTRFS /mnt/boot
 mount -o ssd,noatime,space_cache=v2,autodefrag,compress=zstd:15,discard=async,nodev,nosuid,subvol=@/root $BTRFS /mnt/root 
 mount -o ssd,noatime,space_cache=v2.autodefrag,compress=zstd:15,discard=async,nodev,nosuid,subvol=@/home $BTRFS /mnt/home
 mount -o ssd,noatime,space_cache=v2,autodefrag,compress=zstd:15,discard=async,subvol=@/.snapshots $BTRFS /mnt/.snapshots
@@ -152,7 +152,7 @@ kernel_selector
 # Pacstrap (setting up a base sytem onto the new root).
 # As I said above, I am considering replacing gnome-software with pamac-flatpak-gnome as PackageKit seems very buggy on Arch Linux right now.
 echo "Installing the base system (it may take a while)."
-pacstrap /mnt base ${kernel} ${microcode} base-devel terminus-fonts linux-hardened-headers neofetch screenfetch zsh fish linux-firmware linux-firmware-qlogic grub grub-btrfs snapper snap-pac efibootmgr sudo networkmanager apparmor  python-psutil nano pipewire-pulse pipewire-alsa pipewire-jack  firewalld zram-generator adobe-source-han-sans-otc-fonts adobe-source-han-serif-otc-fonts gnu-free-fonts reflector bluez bluez-utils pulseaudio-bluetooth cups inetutils ntfs-3g bashtop htop sof-firmware rsync os-prober btrfs-progs mlocate man-db
+pacstrap /mnt base ${kernel} ${microcode} base-devel terminus-fonts linux-hardened-headers neofetch screenfetch zsh fish linux-firmware linux-firmware-qlogic  grub grub-btrfs snapper snap-pac efibootmgr sudo networkmanager apparmor  python-psutil python-notify2 nano pipewire-pulse pipewire-alsa pipewire-jack  firewalld zram-generator adobe-source-han-sans-otc-fonts adobe-source-han-serif-otc-fonts gnu-free-fonts reflector bluez bluez-utils cups inetutils ntfs-3g bashtop htop sof-firmware rsync os-prober net-tools terminus-font wireless_tools intel-gpu-tools btrfs-progs mlocate man-db
 
 # Routing jack2 through PipeWire.
 echo "/usr/lib/pipewire-0.3/jack" > /mnt/etc/ld.so.conf.d/pipewire-jack.conf
@@ -178,7 +178,7 @@ EOF
 read -r -p shadowjynxs username
 
 # Setting up locales.
-read -r -p en_IN locale
+read -r -p en_US locale
 echo "$locale.UTF-8 UTF-8"  > /mnt/etc/locale.gen
 echo "LANG=$locale.UTF-8" > /mnt/etc/locale.conf
 
@@ -192,7 +192,7 @@ sed -i 's,#COMPRESSION="zstd",COMPRESSION="zstd",g' /mnt/etc/mkinitcpio.conf
 sed -i 's,modconf block filesystems keyboard,keyboard modconf block encrypt filesystems,g' /mnt/etc/mkinitcpio.conf
 
 # Enabling LUKS in GRUB and setting the UUID of the LUKS container.
-UUID=$(blkid $archboot | cut -f2 -d'"')
+UUID=$(blkid $archlinux | cut -f2 -d'"')
 sed -i 's/#\(GRUB_ENABLE_CRYPTODISK=y\)/\1/' /mnt/etc/default/grub
 echo "" >> /mnt/etc/default/grub
 echo -e "# Booting with BTRFS subvolume\nGRUB_BTRFS_OVERRIDE_BOOT_PARTITION_DETECTION=true" >> /mnt/etc/default/grub
@@ -214,13 +214,13 @@ chmod 755 /mnt/etc/grub.d/*
 # Adding keyfile to the initramfs to avoid double password.
 dd bs=512 count=4 if=/dev/random of=/mnt/cryptkey/.root.key iflag=fullblock &>/dev/null
 chmod 000 /mnt/cryptkey/.root.key &>/dev/null
-cryptsetup -v luksAddKey /dev/disk/by-partlabel/archboot /mnt/cryptkey/.root.key
-sed -i "s#quiet#cryptdevice=UUID=$UUID:archboot root=$BTRFS lsm=landlock,lockdown,yama,apparmor,bpf cryptkey=rootfs:/cryptkey/.root.key#g" /mnt/etc/default/grub
+cryptsetup -v luksAddKey /dev/nvme0n1p4 /mnt/cryptkey/.root.key
+sed -i "s#quiet#cryptdevice=UUID=$UUID:archboot root=$BTRFS lsm=landlock,lockdown,yama,apparmor,bpf mem_sleep_default=deep cryptkey=rootfs:/cryptkey/.root.key#g" /mnt/etc/default/grub
 sed -i 's#FILES=()#FILES=(/cryptkey/.root.key)#g' /mnt/etc/mkinitcpio.conf
 
 # Configure AppArmor Parser caching
-sed -i 's/#write-cache/write-cache/g' /etc/apparmor/parser.conf
-sed -i 's,#Include /etc/apparmor.d/,Include /etc/apparmor.d/#g' /etc/apparmor/parser.conf
+sed -i 's/#write-cache/write-cache/g' /mnt/etc/apparmor/parser.conf
+sed -i 's,#Include /etc/apparmor.d/,Include /etc/apparmor.d/#g' /mnt/etc/apparmor/parser.conf
 
 # Blacklisting kernel modules
 curl https://raw.githubusercontent.com/Whonix/security-misc/master/etc/modprobe.d/30_security-misc.conf >> /mnt/etc/modprobe.d/30_security-misc.conf
@@ -316,7 +316,7 @@ arch-chroot /mnt /bin/bash -e <<EOF
 
     # Installing GRUB.
     echo "Installing GRUB on /boot."
-    grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=Arch\ Linux --modules="normal test efi_gop efi_uga search echo linux all_video gfxmenu gfxterm_background gfxterm_menu gfxterm loadenv configfile gzio part_gtp cryptodisk luks gcry_rijndael gcry_sha256 btrfs" --disable-shim-lock &>/dev/null
+    grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=Arch\ Linux --boot-directory=/boot --modules="normal test efi_gop efi_uga search echo linux all_video gfxmenu gfxterm_background gfxterm_menu gfxterm loadenv configfile gzio cryptodisk luks gcry_rijndael gcry_sha256 btrfs" --disable-shim-lock &>/dev/null
     
     # Creating grub config file.
     echo "Creating GRUB config file."
